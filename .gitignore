@@ -178,3 +178,4 @@ model
 # Checkpoint
 ckpt
 data/class
+results

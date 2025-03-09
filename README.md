@@ -11,4 +11,8 @@ ponix can go anywhere
 
 ### v0.1.0 : cwhuh/ponix-generator-v0.1.0
 
+##### 1500 step
 ![ponix v0.1.0](./data/assets/v0.1.0.png)
+
+##### 2500 step
+![ponix v0.1.0 2500step](./data/assets/v0.1.0-2500step.png)
