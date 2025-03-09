@@ -1,8 +1,8 @@
 export MODEL_NAME="black-forest-labs/FLUX.1-dev"
-export INSTANCE_DIR="./data/dreambooth/instance"
+export INSTANCE_DIR="./data"
 export OUTPUT_DIR="./ckpt/ponix-generator"
 
-poetry run accelerate launch train/train_dlora_flux_advanced.py \
+accelerate launch src/train/train_dlora_flux_advanced.py \
   --pretrained_model_name_or_path "$MODEL_NAME" \
   --instance_data_dir "$INSTANCE_DIR" \
   --output_dir "$OUTPUT_DIR" \
@@ -27,5 +27,5 @@ poetry run accelerate launch train/train_dlora_flux_advanced.py \
   --seed "0" \
   --push_to_hub \
   --resume_from_checkpoint="latest" \
-  --cache_dir="/workspace/ods-refinement-dev/model" \
+  --cache_dir="/workspace/ponix-generator/model" \
   --center_crop
