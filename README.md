@@ -15,4 +15,5 @@ ponix can go anywhere
 ![ponix v0.1.0](./data/assets/v0.1.0.png)
 
 ##### 2500 step
-![ponix v0.1.0 2500step](./data/assets/v0.1.0-2500step.png)
+![ponix v0.1.0 2500step snowy desert](./data/assets/v0.1.0-2500step-snowydesert.png)
+![ponix v0.1.0 2500step volcano](./data/assets/v0.1.0-2500step-volcano.png)

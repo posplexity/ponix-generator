@@ -13,13 +13,13 @@ pipeline.load_textual_inversion(state_dict["clip_l"], token=["<s0>", "<s1>", "<s
             
 prompt = """
 photo of <s0><s1><s2> plush bird 
-sitting peacefully on a patch of fresh snow 
-in the middle of scorching desert dunes, 
-footprints left in the snow, 
-bright sunshine overhead, 
-extremely detailed, hyper-realistic, 
-cinematic lighting, 8k resolution, 
-surreal environment, ultra high quality photograph
+resting comfortably on a small raft of volcanic rock 
+floating atop a glowing lava lake inside an erupting volcano, 
+intense heat haze rising, 
+embers and sparks flickering in the air, 
+hyper-realistic details, cinematic lighting, 8k resolution, 
+ultra high quality photograph, 
+surreal, dramatic composition
 """
 
 # results 디렉토리 생성
