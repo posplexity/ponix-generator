@@ -5,10 +5,7 @@ from pathlib import Path
 import torch, os
 
 prompt = """
-photo of ponix <s0> plush bird traveling in outer space, 
-orbiting planet Earth, highly detailed, hyper-realistic, 
-cinematic lighting, intricate details, 8k resolution, 
-ultra high quality photograph
+photo of ponix <s0><s1><s2> plush bird riding a horse 
 """
 
 def run_dlora_advanced(lora_path:str, output_path:str):
@@ -24,7 +21,7 @@ def run_dlora_advanced(lora_path:str, output_path:str):
     state_dict = load_file("ckpt/ponix-generator/ponix-generator_emb.safetensors")
     pipe.load_textual_inversion(
         state_dict["clip_l"],
-        token=["<s0>"],
+        token=["<s0>", "<s1>", "<s2>"],
         text_encoder=pipe.text_encoder,
         tokenizer=pipe.tokenizer
     )
@@ -39,6 +36,6 @@ def run_dlora_advanced(lora_path:str, output_path:str):
 
 if __name__ == "__main__":
     run_dlora_advanced(
-        lora_path="ckpt/ponix-generator/checkpoint-1500",
+        lora_path="ckpt/ponix-generator",
         output_path="ponix-generated.png"
     )
