@@ -9,6 +9,8 @@ ponix can go anywhere
 ![ponix v0.1.0 ME](./data/assets/v0.1.0-ME.png)
 ![ponix v0.1.0 CSE](./data/assets/v0.1.0-CSE.png)
 ![ponix v0.1.0 PHYS](./data/assets/v0.1.0-PHYS.png)
+![ponix v0.1.0 VIOLIN](./data/assets/v0.1.0-violin.png)
+![ponix v0.1.0 SOCCER](./data/assets/v0.1.0-soccer.png)
 ![ponix v0.1.0 GUITAR](./data/assets/v0.1.0-GUITAR.png)
 ![ponix v0.1.0 BASEBALL](./data/assets/v0.1.0-BASEBALL.png)
 ![ponix v0.1.0 2500step lab](./data/assets/v0.1.0-CHEM.png)
