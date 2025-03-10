@@ -1,4 +1,5 @@
 # ponix-generator
+[![Hugging Demo](https://img.shields.io/badge/🤗%20Hugging%20Face-Compatible-yellow)](https://huggingface.co/spaces/cwhuh/ponix-generator-dev)
 
 ponix can go anywhere
 
@@ -18,6 +19,7 @@ ponix can go anywhere
 ![ponix v0.1.0 2500step volcano](./data/assets/v0.1.0-2500step-volcano.png)
 
 
+---
 
 ### v0.0.1 : cwhuh/ponix-generator-v0.0.1
 
