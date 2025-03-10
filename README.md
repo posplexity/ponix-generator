@@ -1,5 +1,7 @@
 # ponix-generator
-[![Hugging Demo](https://img.shields.io/badge/🤗%20Hugging%20Face-Compatible-yellow)](https://huggingface.co/spaces/cwhuh/ponix-generator-dev)
+
+[![Hugging Face Model](https://img.shields.io/badge/🤗%20HuggingFace-Model-orange)](https://huggingface.co/cwhuh/ponix-generator-v0.1.0)
+[![Hugging Face Space](https://img.shields.io/badge/🤗%20HuggingFace-Spaces-yellow)](https://huggingface.co/spaces/cwhuh/ponix-generator)
 
 ponix can go anywhere
 
@@ -17,7 +19,6 @@ ponix can go anywhere
 ![ponix v0.1.0 2500step lab](./data/assets/v0.1.0-CHEM.png)
 ![ponix v0.1.0 2500step snowy desert](./data/assets/v0.1.0-2500step-snowydesert.png)
 ![ponix v0.1.0 2500step volcano](./data/assets/v0.1.0-2500step-volcano.png)
-
 
 ---
 
