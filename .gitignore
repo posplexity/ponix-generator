@@ -179,3 +179,4 @@ model
 ckpt
 data/class
 results
+data/instance-v0.1.1
