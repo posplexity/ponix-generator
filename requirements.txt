@@ -8,3 +8,6 @@ peft>=0.11.1
 sentencepiece
 git+https://github.com/huggingface/diffusers.git
 prodigyopt
+kornia
+timm
+opencv-python-headless
