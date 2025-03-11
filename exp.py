@@ -19,7 +19,7 @@ intense heat haze rising,
 embers and sparks flickering in the air, 
 hyper-realistic details, cinematic lighting, 8k resolution, 
 ultra high quality photograph, 
-surreal, dramatic composition
+surreal, dramatic composition 
 """
 
 # results 디렉토리 생성
