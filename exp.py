@@ -6,7 +6,7 @@ import os
 from datetime import datetime
             
 pipeline = AutoPipelineForText2Image.from_pretrained("black-forest-labs/FLUX.1-dev", torch_dtype=torch.bfloat16, cache_dir="/workspace/ponix-generator/model").to('cuda')
-pipeline.load_lora_weights('cwhuh/ponix-generator-v0.1.0', weight_name='pytorch_lora_weights.safetensors')
+pipeline.load_lora_weights('cwhuh/ponix-generator-v0.1.0', weight_name='pytorch_lora_weights.safetensors', subfolder="checkpoint-2500")
 embedding_path = hf_hub_download(repo_id='cwhuh/ponix-generator-v0.1.0', filename='./ponix-generator-v0.1.0_emb.safetensors', repo_type="model")
 state_dict = load_file(embedding_path)
 pipeline.load_textual_inversion(state_dict["clip_l"], token=["<s0>", "<s1>", "<s2>"], text_encoder=pipeline.text_encoder, tokenizer=pipeline.tokenizer)

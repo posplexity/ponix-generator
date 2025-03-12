@@ -177,6 +177,15 @@ model
 
 # Checkpoint
 ckpt
+
+# Data
 data/class
-results
+data/instance-v0.1.0
 data/instance-v0.1.1
+data/raw-v0.2.0
+re
+# Experimental Results
+results
+
+# Train Log
+nohup.out
