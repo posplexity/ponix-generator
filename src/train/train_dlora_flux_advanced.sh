@@ -1,5 +1,5 @@
 export MODEL_NAME="black-forest-labs/FLUX.1-dev"
-export INSTANCE_DIR="./data/instance-v0.2.0"
+export INSTANCE_DIR="./data/instance-v0.2.0-front"
 export OUTPUT_DIR="./ckpt/ponix-generator-v0.2.0"
 
 accelerate launch src/train/train_dlora_flux_advanced.py \
@@ -13,7 +13,7 @@ accelerate launch src/train/train_dlora_flux_advanced.py \
   --guidance_scale 1 \
   --optimizer "prodigy" \
   --learning_rate 1.0 \
-  --max_train_steps 2500 \
+  --max_train_steps 5000 \
   --gradient_checkpointing \
   --token_abstraction "ponix" \
   --instance_prompt "photo of ponix plush bird" \

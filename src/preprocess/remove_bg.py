@@ -12,8 +12,8 @@ from torchvision import transforms
 model = AutoModelForImageSegmentation.from_pretrained("briaai/RMBG-2.0", trust_remote_code=True)
 
 # 입력/출력 디렉토리
-input_dir = "./data/raw-v0.2.0"
-output_dir = "./data/instance-v0.2.0"
+input_dir = "./data/raw-v0.2.0-front"
+output_dir = "./data/instance-v0.2.0-front"
 os.makedirs(output_dir, exist_ok=True)
 
 # 장치 설정
