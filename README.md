@@ -7,7 +7,7 @@ ponix can go anywhere
 
 ---
 
-### v0.1.0 : cwhuh/ponix-generator-v0.2.0
+### v0.2.0 : cwhuh/ponix-generator-v0.2.0
 
 ![ponix v0.2.0 SUMMER](./data/assets/v0.2.0-summer.png)
 ![ponix v0.2.0 BEACH](./data/assets/v0.2.0-beach.png)
