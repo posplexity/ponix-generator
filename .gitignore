@@ -180,6 +180,7 @@ ckpt
 
 # Data
 data/class
+<<<<<<< Updated upstream
 data/instance-v0.1.0
 data/instance-v0.1.1
 data/raw-v0.2.0
@@ -189,3 +190,7 @@ results
 
 # Train Log
 nohup.out
+=======
+data/instance-v0.1.1
+results
+>>>>>>> Stashed changes

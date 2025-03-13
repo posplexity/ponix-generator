@@ -1,6 +1,11 @@
 export MODEL_NAME="black-forest-labs/FLUX.1-dev"
+<<<<<<< Updated upstream
 export INSTANCE_DIR="./data/instance-v0.2.0-front"
 export OUTPUT_DIR="./ckpt/ponix-generator-v0.2.0"
+=======
+export INSTANCE_DIR="./data/instance-v0.1.1"
+export OUTPUT_DIR="./ckpt/ponix-generator-v0.1.1"
+>>>>>>> Stashed changes
 
 accelerate launch src/train/train_dlora_flux_advanced.py \
   --pretrained_model_name_or_path "$MODEL_NAME" \
