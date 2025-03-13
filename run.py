@@ -1,41 +1,45 @@
 from diffusers import AutoPipelineForText2Image
+import torch
+from huggingface_hub import hf_hub_download
 from safetensors.torch import load_file
-from PIL import Image, ImageFilter
-from pathlib import Path
-import torch, os
-
+import os
+from datetime import datetime
+            
+pipeline = AutoPipelineForText2Image.from_pretrained("black-forest-labs/FLUX.1-dev", torch_dtype=torch.bfloat16, cache_dir="/workspace/ponix-generator/model").to('cuda')
+pipeline.load_lora_weights('cwhuh/ponix-generator-v0.2.0', weight_name='pytorch_lora_weights.safetensors')
+embedding_path = hf_hub_download(repo_id='cwhuh/ponix-generator-v0.2.0', filename='./ponix-generator-v0.2.0_emb.safetensors', repo_type="model")
+state_dict = load_file(embedding_path)
+pipeline.load_textual_inversion(state_dict["clip_l"], token=["<s0>", "<s1>", "<s2>"], text_encoder=pipeline.text_encoder, tokenizer=pipeline.tokenizer)
+            
 prompt = """
-photo of ponix <s0><s1><s2> plush bird riding a horse 
+photo of <s0><s1><s2> plush bird 
+swimming in the ocean, 
+gentle waves surrounding it, 
+crystal clear blue water, 
+sunlight reflecting off the water surface, 
+hyper-realistic details, cinematic lighting, 8k resolution, 
+ultra high quality photograph, 
+serene, natural composition
 """
 
-def run_dlora_advanced(lora_path:str, output_path:str):
-    """
-    inference code for dlora advanced (pivotal tuning, textual inversion)
-    """
-    pipe = AutoPipelineForText2Image.from_pretrained("black-forest-labs/FLUX.1-dev", torch_dtype=torch.bfloat16, cache_dir="/workspace/ponix-generator/model").to('cuda')
-    pipe.load_lora_weights(lora_path, weight_name="pytorch_lora_weights.safetensors")
+# results 디렉토리 생성
+os.makedirs("./results", exist_ok=True)
 
-    text_encoders=[pipe.text_encoder, pipe.text_encoder_2]
-    tokenizers=[pipe.tokenizer, pipe.tokenizer_2]
+# 현재 시간을 파일명에 포함
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    state_dict = load_file("ckpt/ponix-generator/ponix-generator_emb.safetensors")
-    pipe.load_textual_inversion(
-        state_dict["clip_l"],
-        token=["<s0>", "<s1>", "<s2>"],
-        text_encoder=pipe.text_encoder,
-        tokenizer=pipe.tokenizer
-    )
-
-    image = pipe(
-        prompt=prompt,
+# 여러 시드로 이미지 생성
+seeds = range(21, 41)  # 1부터 5까지의 시드 사용
+for seed in seeds:
+    # 시드 설정
+    generator = torch.Generator("cuda").manual_seed(seed)
+    
+    # 이미지 생성
+    image = pipeline(
+        prompt,
         num_inference_steps=50,
+        generator=generator
     ).images[0]
-
-    image.save(output_path)
-
-
-if __name__ == "__main__":
-    run_dlora_advanced(
-        lora_path="ckpt/ponix-generator",
-        output_path="ponix-generated.png"
-    )
+    
+    # 결과 저장
+    image.save(f"./results/ponix_generated_{timestamp}_seed{seed}.png")

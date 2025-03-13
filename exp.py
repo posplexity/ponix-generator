@@ -1,62 +1,33 @@
-from diffusers import AutoPipelineForText2Image
 import torch
-from huggingface_hub import hf_hub_download
-from safetensors.torch import load_file
-import os
-from datetime import datetime
-            
-pipeline = AutoPipelineForText2Image.from_pretrained("black-forest-labs/FLUX.1-dev", torch_dtype=torch.bfloat16, cache_dir="/workspace/ponix-generator/model").to('cuda')
-<<<<<<< Updated upstream
-pipeline.load_lora_weights('cwhuh/ponix-generator-v0.2.0', weight_name='pytorch_lora_weights.safetensors')
-embedding_path = hf_hub_download(repo_id='cwhuh/ponix-generator-v0.2.0', filename='./ponix-generator-v0.2.0_emb.safetensors', repo_type="model")
-=======
-pipeline.load_lora_weights('cwhuh/ponix-generator-v0.1.0', weight_name='pytorch_lora_weights.safetensors', subfolder="checkpoint-4000")
-embedding_path = hf_hub_download(repo_id='cwhuh/ponix-generator-v0.1.0', filename='ponix-generator-v0.1.0_emb.safetensors', repo_type="model")
->>>>>>> Stashed changes
-state_dict = load_file(embedding_path)
-pipeline.load_textual_inversion(state_dict["clip_l"], token=["<s0>", "<s1>", "<s2>"], text_encoder=pipeline.text_encoder, tokenizer=pipeline.tokenizer)
-            
-prompt = """
-photo of <s0><s1><s2> plush bird 
-<<<<<<< Updated upstream
-swimming in the ocean, 
-gentle waves surrounding it, 
-crystal clear blue water, 
-sunlight reflecting off the water surface, 
-hyper-realistic details, cinematic lighting, 8k resolution, 
-ultra high quality photograph, 
-serene, natural composition
-=======
-wearing a graduation cap and casual collegiate outfit
-inside a prestigious university campus on orientation day, 
-surrounded by historic academic buildings and green quads,
-carrying a backpack filled with textbooks,
-other freshman students visible in background,
-campus library and lecture halls visible in the scene,
-hyper-realistic details, bright sunny day lighting, 8k resolution, 
-ultra high quality photograph, 
-academic atmosphere, excitement of new beginnings
->>>>>>> Stashed changes
-"""
+from diffusers import FluxPipeline
+from diffusers.utils import load_image
 
-# results 디렉토리 생성
-os.makedirs("./results", exist_ok=True)
+pipe: FluxPipeline = FluxPipeline.from_pretrained(
+    "black-forest-labs/FLUX.1-dev",
+    torch_dtype=torch.bfloat16,
+    cache_dir="/workspace/ponix-generator/model"
+).to("cuda")
 
-# 현재 시간을 파일명에 포함
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+image = load_image("monalisa.png").resize((1024, 1024))
 
-# 여러 시드로 이미지 생성
-seeds = range(21, 41)  # 1부터 5까지의 시드 사용
-for seed in seeds:
-    # 시드 설정
-    generator = torch.Generator("cuda").manual_seed(seed)
-    
-    # 이미지 생성
-    image = pipeline(
-        prompt,
-        num_inference_steps=50,
-        generator=generator
-    ).images[0]
-    
-    # 결과 저장
-    image.save(f"./results/ponix_generated_{timestamp}_seed{seed}.png")
+pipe.load_ip_adapter("XLabs-AI/flux-ip-adapter-v2", weight_name="ip_adapter.safetensors", image_encoder_pretrained_model_name_or_path="openai/clip-vit-large-patch14")
+
+def LinearStrengthModel(start, finish, size):
+    return [
+        (start + (finish - start) * (i / (size - 1))) for i in range(size)
+    ]
+
+ip_strengths = LinearStrengthModel(0.4, 1.0, 19)
+pipe.set_ip_adapter_scale(ip_strengths)
+
+image = pipe(
+    width=1024,
+    height=1024,
+    prompt='wearing red sunglasses, golden chain and a green cap',
+    negative_prompt="",
+    true_cfg_scale=1.0,
+    generator=torch.Generator().manual_seed(0),
+    ip_adapter_image=image,
+).images[0]
+
+image.save('result.jpg')

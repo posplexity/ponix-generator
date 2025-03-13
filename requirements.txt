@@ -1,6 +1,7 @@
 accelerate>=0.31.0
+torch
 torchvision
-transformers>=4.41.2
+git+https://github.com/huggingface/transformers.git
 ftfy
 tensorboard
 Jinja2
