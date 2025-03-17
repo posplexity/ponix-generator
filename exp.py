@@ -7,6 +7,8 @@ from transformers import (
     T5EncoderModel, 
     T5TokenizerFast
 )
+from safetensors.torch import load_file
+from huggingface_hub import hf_hub_download
 
 # 1. 먼저 원하는 텍스트 인코더(클립, T5)와 토크나이저를 로드
 clip_text_model = CLIPTextModel.from_pretrained("black-forest-labs/FLUX.1-dev", subfolder="text_encoder", cache_dir="/workspace/ponix-generator/model", torch_dtype=torch.bfloat16)
@@ -45,16 +47,22 @@ from diffusers.utils import load_image
 image1 = load_image("./dog.jpg")
 pipe_prior_output = pipe_prior_redux(
     image=image1,
-    prompt="a cute dog in paris",
+    prompt="a cute dog on the beach",
     # negative_prompt="low quality, disfigured, watermark",
 )
 
-image2 = load_image("./eiffel.jpg")
+image2 = load_image("./dog.jpg")
+mask = load_image("./my_mask.png")
+
 pipe_prior_output2 = pipe_prior_redux(
     image=image2,
+    mask=mask,
     # prompt="fine glass sculpture of a robot next to an eiffel tower",
     **pipe_prior_output
 )
+
+pipe_prior_output2.prompt_embeds = pipe_prior_output2.prompt_embeds.to(torch.bfloat16)
+pipe_prior_output2.pooled_prompt_embeds = pipe_prior_output2.pooled_prompt_embeds.to(torch.bfloat16)
 
 images = pipe(
     guidance_scale=2.5,

@@ -448,18 +448,40 @@ class FluxPriorReduxPipeline(DiffusionPipeline):
         image_embeds = image_embeds.to(device=device)
 
         if mask is not None:
+            # PIL Image 객체 처리 추가
+            if hasattr(mask, 'convert'):  # PIL Image 객체인지 확인
+                import numpy as np
+                mask = np.array(mask.convert("L"))  # 그레이스케일로 변환 후 numpy 배열로
             if not isinstance(mask, torch.Tensor):
                 mask = torch.from_numpy(mask)
             if mask.dim() == 2:
                 mask = mask.unsqueeze(0)
             mask = mask.to(device=device, dtype=image_embeds.dtype)
 
-            mask_patched = patchify_mask(mask, patch_size=14)
-
             b, tokens, d = image_embeds.shape
             m = int(tokens**0.5)
             if m*m != tokens:
                 raise ValueError("image_embeds가 정사각형 토큰이 아닌 구조입니다.")
+
+            if mask.dim() == 2:
+                # (H, W)
+                H, W = mask.shape
+            elif mask.dim() == 3:
+                # (B, H, W)
+                # 여기서는 B가 1이라고 가정
+                _, H, W = mask.shape
+            else:
+                # (B, 1, H, W) 등등
+                H, W = mask.shape[-2], mask.shape[-1]
+            
+            if H != W:
+                raise ValueError(f"마스크가 정사각형이 아닙니다. (H={H}, W={W})")
+
+            # (d) 토큰 그리드 수 m×m과 실제 마스크 해상도(H×W)를 이용해 patch_size 계산
+            patch_size = H // m  # 예: H=224, m=16 => patch_size=14
+            
+            # (e) 마스크 patchify
+            mask_patched = patchify_mask(mask, patch_size=patch_size)
 
             image_embeds = image_embeds.view(b, m, m, d)
 
