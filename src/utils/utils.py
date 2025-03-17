@@ -28,3 +28,25 @@ def downsample_image_embeds(image_embeds: torch.FloatTensor, factor: int = 2, mo
     # 다시 (b, new_side^2, d)로 되돌림
     image_embeds = image_embeds.permute(0, 2, 3, 1).reshape(b, new_side * new_side, d)
     return image_embeds
+
+
+def patchify_mask(mask: torch.Tensor, patch_size: int = 14) -> torch.Tensor:
+    """
+    ReduxAdvanced 노드에서처럼, 마스크를 patchify(14x14 등)해서
+    CLIP 비전 임베딩과 동일한 2D 토큰 그리드 크기로 만든다.
+    
+    mask.shape가 (B, H, W) or (B, 1, H, W)라고 가정.
+    return: (B, m, m), 여기서 m = H//patch_size (정사각형 가정)
+    """
+    if mask.dim() == 3:
+        # (B, H, W) -> (B, 1, H, W)
+        mask = mask.unsqueeze(1)
+    b, c, h, w = mask.shape
+    # maxPool로 patch 단위 downsample
+    # 예: (H,W)=(224,224)이고 patch_size=14 => (224//14,224//14)=(16,16)
+    # 각 (14x14) 블록 내에 1이라도 있으면 1, 없으면 0 (MaxPool2d)
+    pool = torch.nn.MaxPool2d(kernel_size=patch_size, stride=patch_size)
+    mask_patched = pool(mask)
+    # (B,1,m,m) -> (B,m,m)
+    mask_patched = (mask_patched > 0).float().squeeze(1)
+    return mask_patched

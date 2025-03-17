@@ -1,5 +1,5 @@
 import torch
-from diffusers import FluxPipeline
+from diffusers import FluxPipeline, FluxInpaintPipeline
 from src.flux_redux_pipeline import FluxPriorReduxPipeline
 from transformers import (
     CLIPTextModel, 
@@ -41,18 +41,25 @@ pipe = FluxPipeline.from_pretrained(
 
 # 이제 `prompt=` 인자를 사용하는 예시
 from diffusers.utils import load_image
-image = load_image("https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/robot.png")
 
+image1 = load_image("./dog.jpg")
 pipe_prior_output = pipe_prior_redux(
-    image=image,
-    prompt="fine glass sculpture of a robot",
+    image=image1,
+    prompt="a cute dog in paris",
     # negative_prompt="low quality, disfigured, watermark",
+)
+
+image2 = load_image("./eiffel.jpg")
+pipe_prior_output2 = pipe_prior_redux(
+    image=image2,
+    # prompt="fine glass sculpture of a robot next to an eiffel tower",
+    **pipe_prior_output
 )
 
 images = pipe(
     guidance_scale=2.5,
     num_inference_steps=50,
     generator=torch.Generator("cpu").manual_seed(0),
-    **pipe_prior_output,
+    **pipe_prior_output2,
 ).images
 images[0].save("flux-dev-redux.png")

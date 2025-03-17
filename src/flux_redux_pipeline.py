@@ -40,7 +40,7 @@ from diffusers.pipelines.pipeline_utils import DiffusionPipeline
 from diffusers.pipelines.flux.modeling_flux import ReduxImageEncoder
 from diffusers.pipelines.flux.pipeline_output import FluxPriorReduxPipelineOutput
 
-from src.utils.utils import downsample_image_embeds
+from src.utils.utils import downsample_image_embeds, patchify_mask
 
 
 if is_torch_xla_available():
@@ -375,6 +375,7 @@ class FluxPriorReduxPipeline(DiffusionPipeline):
     def __call__(
         self,
         image: PipelineImageInput,
+        mask: Optional[torch.Tensor] = None,
         prompt: Union[str, List[str]] = None,
         prompt_2: Optional[Union[str, List[str]]] = None,
         prompt_embeds: Optional[torch.FloatTensor] = None,
@@ -446,6 +447,27 @@ class FluxPriorReduxPipeline(DiffusionPipeline):
         image_embeds = self.image_embedder(image_latents).image_embeds
         image_embeds = image_embeds.to(device=device)
 
+        if mask is not None:
+            if not isinstance(mask, torch.Tensor):
+                mask = torch.from_numpy(mask)
+            if mask.dim() == 2:
+                mask = mask.unsqueeze(0)
+            mask = mask.to(device=device, dtype=image_embeds.dtype)
+
+            mask_patched = patchify_mask(mask, patch_size=14)
+
+            b, tokens, d = image_embeds.shape
+            m = int(tokens**0.5)
+            if m*m != tokens:
+                raise ValueError("image_embeds가 정사각형 토큰이 아닌 구조입니다.")
+
+            image_embeds = image_embeds.view(b, m, m, d)
+
+            mask_patched = mask_patched.unsqueeze(-1)
+            image_embeds = image_embeds * mask_patched
+
+            image_embeds = image_embeds.view(b, m*m, d)
+
         # 3. Prepare (dummy) text embeddings
         if hasattr(self, "text_encoder") and self.text_encoder is not None:
             (
@@ -473,8 +495,8 @@ class FluxPriorReduxPipeline(DiffusionPipeline):
             # pooled_prompt_embeds is 768, clip text encoder hidden size
             pooled_prompt_embeds = torch.zeros((batch_size, 768), device=device, dtype=image_embeds.dtype)
 
-        image_embeds = downsample_image_embeds(image_embeds, factor=2)
-        breakpoint()
+        image_embeds = downsample_image_embeds(image_embeds, factor=3)
+
         # scale & concatenate image and text embeddings
         prompt_embeds = torch.cat([prompt_embeds, image_embeds], dim=1)
 
