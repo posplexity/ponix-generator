@@ -1,33 +1,58 @@
 import torch
 from diffusers import FluxPipeline
-from diffusers.utils import load_image
+from src.flux_redux_pipeline import FluxPriorReduxPipeline
+from transformers import (
+    CLIPTextModel, 
+    CLIPTokenizer, 
+    T5EncoderModel, 
+    T5TokenizerFast
+)
 
-pipe: FluxPipeline = FluxPipeline.from_pretrained(
-    "black-forest-labs/FLUX.1-dev",
+# 1. 먼저 원하는 텍스트 인코더(클립, T5)와 토크나이저를 로드
+clip_text_model = CLIPTextModel.from_pretrained("black-forest-labs/FLUX.1-dev", subfolder="text_encoder", cache_dir="/workspace/ponix-generator/model", torch_dtype=torch.bfloat16)
+clip_tokenizer = CLIPTokenizer.from_pretrained("black-forest-labs/FLUX.1-dev", subfolder="tokenizer", cache_dir="/workspace/ponix-generator/model")
+
+t5_text_model = T5EncoderModel.from_pretrained("black-forest-labs/FLUX.1-dev", subfolder="text_encoder_2", cache_dir="/workspace/ponix-generator/model", torch_dtype=torch.bfloat16)
+t5_tokenizer = T5TokenizerFast.from_pretrained("black-forest-labs/FLUX.1-dev", subfolder="tokenizer_2", cache_dir="/workspace/ponix-generator/model")
+
+# GPU로 옮기기
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+clip_text_model = clip_text_model.to(device)
+t5_text_model   = t5_text_model.to(device)
+
+# 2. FluxPriorReduxPipeline 로드 시, text_encoder/text_encoder_2 등을 인자로 전달
+pipe_prior_redux = FluxPriorReduxPipeline.from_pretrained(
+    pretrained_model_name_or_path="black-forest-labs/FLUX.1-Redux-dev",
+    text_encoder=clip_text_model,      # 첫 번째 텍스트 인코더 (CLIP)
+    tokenizer=clip_tokenizer,          # 첫 번째 토크나이저
+    text_encoder_2=t5_text_model,      # 두 번째 텍스트 인코더 (T5)
+    tokenizer_2=t5_tokenizer,          # 두 번째 토크나이저
+    torch_dtype=torch.bfloat16,
+    cache_dir="/workspace/ponix-generator/model",
+).to(device)
+
+pipe = FluxPipeline.from_pretrained(
+    "black-forest-labs/FLUX.1-dev" , 
+    text_encoder=None,
+    text_encoder_2=None,
     torch_dtype=torch.bfloat16,
     cache_dir="/workspace/ponix-generator/model"
 ).to("cuda")
 
-image = load_image("monalisa.png").resize((1024, 1024))
+# 이제 `prompt=` 인자를 사용하는 예시
+from diffusers.utils import load_image
+image = load_image("https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/robot.png")
 
-pipe.load_ip_adapter("XLabs-AI/flux-ip-adapter-v2", weight_name="ip_adapter.safetensors", image_encoder_pretrained_model_name_or_path="openai/clip-vit-large-patch14")
+pipe_prior_output = pipe_prior_redux(
+    image=image,
+    prompt="fine glass sculpture of a robot",
+    # negative_prompt="low quality, disfigured, watermark",
+)
 
-def LinearStrengthModel(start, finish, size):
-    return [
-        (start + (finish - start) * (i / (size - 1))) for i in range(size)
-    ]
-
-ip_strengths = LinearStrengthModel(0.4, 1.0, 19)
-pipe.set_ip_adapter_scale(ip_strengths)
-
-image = pipe(
-    width=1024,
-    height=1024,
-    prompt='wearing red sunglasses, golden chain and a green cap',
-    negative_prompt="",
-    true_cfg_scale=1.0,
-    generator=torch.Generator().manual_seed(0),
-    ip_adapter_image=image,
-).images[0]
-
-image.save('result.jpg')
+images = pipe(
+    guidance_scale=2.5,
+    num_inference_steps=50,
+    generator=torch.Generator("cpu").manual_seed(0),
+    **pipe_prior_output,
+).images
+images[0].save("flux-dev-redux.png")

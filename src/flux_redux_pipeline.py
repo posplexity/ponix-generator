@@ -26,9 +26,9 @@ from transformers import (
     T5TokenizerFast,
 )
 
-from ...image_processor import PipelineImageInput
-from ...loaders import FluxLoraLoaderMixin, TextualInversionLoaderMixin
-from ...utils import (
+from diffusers.image_processor import PipelineImageInput
+from diffusers.loaders import FluxLoraLoaderMixin, TextualInversionLoaderMixin
+from diffusers.utils import (
     USE_PEFT_BACKEND,
     is_torch_xla_available,
     logging,
@@ -36,9 +36,11 @@ from ...utils import (
     scale_lora_layers,
     unscale_lora_layers,
 )
-from ..pipeline_utils import DiffusionPipeline
-from .modeling_flux import ReduxImageEncoder
-from .pipeline_output import FluxPriorReduxPipelineOutput
+from diffusers.pipelines.pipeline_utils import DiffusionPipeline
+from diffusers.pipelines.flux.modeling_flux import ReduxImageEncoder
+from diffusers.pipelines.flux.pipeline_output import FluxPriorReduxPipelineOutput
+
+from src.utils.utils import downsample_image_embeds
 
 
 if is_torch_xla_available():
@@ -471,6 +473,8 @@ class FluxPriorReduxPipeline(DiffusionPipeline):
             # pooled_prompt_embeds is 768, clip text encoder hidden size
             pooled_prompt_embeds = torch.zeros((batch_size, 768), device=device, dtype=image_embeds.dtype)
 
+        image_embeds = downsample_image_embeds(image_embeds, factor=2)
+        breakpoint()
         # scale & concatenate image and text embeddings
         prompt_embeds = torch.cat([prompt_embeds, image_embeds], dim=1)
 
