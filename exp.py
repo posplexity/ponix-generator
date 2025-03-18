@@ -32,6 +32,10 @@ pipe_prior_redux = FluxPriorReduxPipeline.from_pretrained(
     torch_dtype=torch.bfloat16,
     cache_dir="/workspace/ponix-generator/model",
 ).to(device)
+embedding_path = hf_hub_download(repo_id='cwhuh/ponix-generator-v0.2.0', filename='./ponix-generator-v0.2.0_emb.safetensors', repo_type="model")
+state_dict = load_file(embedding_path)
+pipe_prior_redux.load_textual_inversion(state_dict["clip_l"], token=["<s0>", "<s1>", "<s2>"], text_encoder=pipe_prior_redux.text_encoder, tokenizer=pipe_prior_redux.tokenizer)
+
 
 pipe = FluxPipeline.from_pretrained(
     "black-forest-labs/FLUX.1-dev" , 
@@ -40,34 +44,43 @@ pipe = FluxPipeline.from_pretrained(
     torch_dtype=torch.bfloat16,
     cache_dir="/workspace/ponix-generator/model"
 ).to("cuda")
+pipe.load_lora_weights('cwhuh/ponix-generator-v0.2.0', weight_name='pytorch_lora_weights.safetensors')
 
 # 이제 `prompt=` 인자를 사용하는 예시
 from diffusers.utils import load_image
 
-image1 = load_image("./dog.jpg")
+image1 = load_image("./data/img/ponix.webp")
+mask1 = load_image("./data/img/ponix_mask.png")
 pipe_prior_output = pipe_prior_redux(
     image=image1,
-    prompt="a cute dog on the beach",
+    mask=mask1,
+    prompt="photo of <s0><s1><s2> plush bird wearing korean traditional clothes in front of a building",
     # negative_prompt="low quality, disfigured, watermark",
 )
 
-image2 = load_image("./dog.jpg")
-mask = load_image("./my_mask.png")
-
+image2 = load_image("./data/img/hanbok.webp")
+mask2 = load_image("./data/img/hanbok_mask.png")
 pipe_prior_output2 = pipe_prior_redux(
     image=image2,
-    mask=mask,
-    # prompt="fine glass sculpture of a robot next to an eiffel tower",
+    mask=mask2,
+    downsample_factor=2,
     **pipe_prior_output
 )
 
-pipe_prior_output2.prompt_embeds = pipe_prior_output2.prompt_embeds.to(torch.bfloat16)
-pipe_prior_output2.pooled_prompt_embeds = pipe_prior_output2.pooled_prompt_embeds.to(torch.bfloat16)
+image3 = load_image("./data/img/changeup.jpeg")
+pipe_prior_output3 = pipe_prior_redux(
+    image=image3,
+    **pipe_prior_output2
+)
+
+
+pipe_prior_output3.prompt_embeds = pipe_prior_output3.prompt_embeds.to(torch.bfloat16)
+pipe_prior_output3.pooled_prompt_embeds = pipe_prior_output3.pooled_prompt_embeds.to(torch.bfloat16)
 
 images = pipe(
     guidance_scale=2.5,
     num_inference_steps=50,
     generator=torch.Generator("cpu").manual_seed(0),
-    **pipe_prior_output2,
+    **pipe_prior_output3,
 ).images
 images[0].save("flux-dev-redux.png")

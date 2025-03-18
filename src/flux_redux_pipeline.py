@@ -41,6 +41,7 @@ from diffusers.pipelines.flux.modeling_flux import ReduxImageEncoder
 from diffusers.pipelines.flux.pipeline_output import FluxPriorReduxPipelineOutput
 
 from src.utils.utils import downsample_image_embeds, patchify_mask
+from diffusers.loaders.textual_inversion import TextualInversionLoaderMixin
 
 
 if is_torch_xla_available():
@@ -83,7 +84,7 @@ EXAMPLE_DOC_STRING = """
 """
 
 
-class FluxPriorReduxPipeline(DiffusionPipeline):
+class FluxPriorReduxPipeline(DiffusionPipeline, TextualInversionLoaderMixin):
     r"""
     The Flux Redux pipeline for image-to-image generation.
 
@@ -382,6 +383,7 @@ class FluxPriorReduxPipeline(DiffusionPipeline):
         pooled_prompt_embeds: Optional[torch.FloatTensor] = None,
         prompt_embeds_scale: Optional[Union[float, List[float]]] = 1.0,
         pooled_prompt_embeds_scale: Optional[Union[float, List[float]]] = 1.0,
+        downsample_factor: Optional[int] = 3,
         return_dict: bool = True,
     ):
         r"""
@@ -517,7 +519,7 @@ class FluxPriorReduxPipeline(DiffusionPipeline):
             # pooled_prompt_embeds is 768, clip text encoder hidden size
             pooled_prompt_embeds = torch.zeros((batch_size, 768), device=device, dtype=image_embeds.dtype)
 
-        image_embeds = downsample_image_embeds(image_embeds, factor=3)
+        image_embeds = downsample_image_embeds(image_embeds, factor=downsample_factor)
 
         # scale & concatenate image and text embeddings
         prompt_embeds = torch.cat([prompt_embeds, image_embeds], dim=1)
